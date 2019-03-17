@@ -1,0 +1,47 @@
+%for info in geninfo:
+# ${info}
+%endfor
+
+authoritative;
+
+%for network in sorted(list(networks)):
+subnet ${network.getnet().getnet()} netmask ${network.getnet().getmask()} {
+	%if network.hasdhcp():
+	range ${network.getdhcp().getrangefrom()} ${network.getdhcp().getrangeto()};
+	%if network.getdhcp().getbroadcast() is not None:
+	option broadcast-address ${network.getdhcp().getbroadcast()};
+	%endif
+	option domain-name "${network.getname()}";
+	%if len(list(network.getdhcp().getdnsservers())) > 0:
+	option domain-name-servers ${", ".join([ str(ip) for ip in network.getdhcp().getdnsservers()])};
+	%endif
+	%if network.getdhcp().getrouter() is not None:
+	option routers ${network.getdhcp().getrouter()};
+	%endif
+	%if len(list(network.getdhcp().getntpservers())) > 0:
+	option ntp-servers ${", ".join([ str(ip) for ip in network.getdhcp().getntpservers()])};
+	%endif
+	%if network.getdhcp().getleasetimedefault() is not None:
+	default-lease-time ${network.getdhcp().getleasetimedefault()};
+	%endif
+	%if network.getdhcp().getleasetimemax() is not None:
+	max-lease-time ${network.getdhcp().getleasetimemax()};
+	%endif
+	%if network.getdhcp().getpxefilename() is not None:
+	filename "${network.getdhcp().getpxefilename()}";
+	%endif
+	%if network.getdhcp().getpxenext() is not None:
+	next-server ${network.getdhcp().getpxenext()};
+	%endif
+	%endif
+}
+
+%endfor
+
+%for host in sorted(list(hosts)):
+host ${host.getname()}.${host.getnetwork().getname()} {
+	hardware ethernet ${host.getmac()};
+	fixed-address ${host.getip()};
+}
+
+%endfor

@@ -1,0 +1,38 @@
+%for info in geninfo:
+; ${info}
+%endfor
+
+$TTL 1W
+${network.getname()}.			IN SOA	${network.getname()}. root.${network.getname()}. (
+	${serial}	; Serial
+	86400	; Refresh
+	7200	; Retry
+	604800	; Expire
+	86400	; Minimum
+)
+
+; Authoritative nameserver
+			IN NS	ns.${network.getname()}.
+ns			IN A	${network.getdns().getauthority()}
+
+; Domain server for ${network.getname()}
+${network.getname()}.			IN A	${network.getdns().getauthority()}
+
+; DNS entries follow
+%for host in network.getsortedhosts():
+${host.getname()}			IN A 	${host.getip()}
+${host.getname()}			IN TXT	"MAC ${host.getmac()}"
+%if host.getdns() is not None:
+%for cname in host.getdns().getcnames():
+${cname}			IN CNAME	${host.getname()}
+%endfor
+%for text in host.getdns().gettext():
+${host.getname()}			IN TXT	"${text}"
+%endfor
+%if host.getdns().hashinfo():
+${host.getname()}			IN HINFO	"${host.getdns().hinfoarch()}" "${host.getdns().hinfoos()}"
+%endif
+%endif
+%endfor
+
+; vim:ts=16

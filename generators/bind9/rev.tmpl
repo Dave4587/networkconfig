@@ -1,0 +1,22 @@
+%for info in geninfo:
+; ${info}
+%endfor
+
+$TTL 1W
+${network.getnet().getrevrepr()}.in-addr.arpa.		IN SOA	ns.${network.getname()}. root.${network.getname()}. (
+	${serial}	; Serial
+	86400	; Refresh
+	7200	; Retry
+	604800	; Expire
+	86400	; Minimum
+)
+
+; Authoritative nameserver
+			IN NS	ns.${network.getname()}.
+
+; Reverse DNS entries
+%for host in network.getsortedhosts():
+${host.getip().revrepr()}.in-addr.arpa.		IN PTR	${host.getname()}.${network.getname()}.
+%endfor
+
+; vim:ts=16
