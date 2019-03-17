@@ -19,19 +19,22 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from RE import RE
+import re
 from IPv4 import IPv4Addr, IPv4Network
 from Ethernet import MacAddress
 from Comparable import Comparable
 
+_dns_name_re = re.compile(r"[a-zA-Z][a-zA-Z0-9]+")
 def validdnsname(text):
-	return RE("^[a-zA-Z][a-zA-Z0-9]+$").match(text) is not None
+	return _dns_name_re.fullmatch(text) is not None
 
+_dns_hinfo_re = re.compile(r"[-_a-zA-Z0-9/ ]+")
 def validdnshinfoentry(text):
-	return RE("^[-_a-zA-Z0-9/ ]+$").match(text) is not None
+	return _dns_hinfo_re.fullmatch(text) is not None
 
+_dns_txt_re = re.compile(r"[-/=()+a-zA-Z0-9 @\.]+")
 def validdnstxtentry(text):
-	return RE("^[-/=()+a-zA-Z0-9 @\.]+$").match(text) is not None
+	return _dns_txt_re.fullmatch(text) is not None
 
 class DNSInfo():
 	def __init__(self, xmlroot, xmlnode):
@@ -238,6 +241,3 @@ class Network(Comparable):
 		for ip in self._net:
 			if ip not in self._hostsbyip:
 				return ip
-
-
-

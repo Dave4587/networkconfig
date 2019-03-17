@@ -19,16 +19,17 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from RE import RE
+import re
 from Comparable import Comparable
 
 class MacAddress(Comparable):
+	_mac_re = re.compile(r"([0-9a-fA-F]{2})[:-]([0-9a-fA-F]{2})[:-]([0-9a-fA-F]{2})[:-]([0-9a-fA-F]{2})[:-]([0-9a-fA-F]{2})[:-]([0-9a-fA-F]{2})")
+
 	def __init__(self, text):
 		self._text = text
-		re = RE("^([0-9a-fA-F]{2})[:-]([0-9a-fA-F]{2})[:-]([0-9a-fA-F]{2})[:-]([0-9a-fA-F]{2})[:-]([0-9a-fA-F]{2})[:-]([0-9a-fA-F]{2})$")
-		self._required(re.match(text))
-
-		self._mac = [ int(x, 16) for x in re.getall() ]
+		match = self._mac_re.fullmatch(text)
+		self._required(match is not None)
+		self._mac = [ int(x, 16) for x in match.groups() ]
 		self._required([ 0 <= x <= 255 for x in self._mac ])
 
 	def _required(self, condition):

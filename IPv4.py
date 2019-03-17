@@ -19,17 +19,19 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from RE import RE
+import re
 from Comparable import Comparable
 
 class IPv4Addr(Comparable):
+	_ipv4_re = re.compile(r"(\d+)\.(\d+)\.(\d+)\.(\d+)")
+
 	def __init__(self, text = None):
 		self._text = text
 		if text is not None:
-			re = RE("^(\d+)\.(\d+)\.(\d+)\.(\d+)$")
-			self._require(re.match(text))
-			(v1, v2, v3, v4) = [ int(x) for x in re.getall() ]
-			self._require(all([ 0 <= x <= 255 for x in [ v1, v2, v3, v4 ] ]))
+			match = self._ipv4_re.fullmatch(text)
+			self._require(match is not None)
+			(v1, v2, v3, v4) = [ int(x) for x in match.groups() ]
+			self._require(all(0 <= x <= 255 for x in [ v1, v2, v3, v4 ]))
 			self._ip = (v1 << 24) | (v2 << 16) | (v3 << 8) | (v4 << 0)
 		else:
 			self._ip = 0
@@ -58,18 +60,21 @@ class IPv4Addr(Comparable):
 		return "%d.%d.%d.%d" % ((self._ip >> 24) & 0xff, (self._ip >> 16) & 0xff, (self._ip >> 8) & 0xff, (self._ip >> 0) & 0xff)
 
 class IPv4Network(Comparable):
+	_ipv4_net_re = re.compile(r"([0-9.]+)/(\d+)")
+
 	def __init__(self, text):
 		self._text = text
-		re = RE("^(\d+\.\d+\.\d+\.\d+)/(\d+)$")
-		self._required(re.match(text))
+		match = self._ipv4_net_re.fullmatch(text)
+		self._required(match is not None)
+		match = match.groups()
 
 		try:
-			self._net = IPv4Addr(re[1])
+			self._net = IPv4Addr(match[0])
 		except Exception:
 			self._net = None
 		self._required(self._net is not None)
 
-		cidr = int(re[2])
+		cidr = int(match[1])
 		self._required(0 <= cidr <= 32)
 
 		self._mask = IPv4Addr()
@@ -140,4 +145,3 @@ if __name__ == "__main__":
 	print(IPv4Network("172.16.0.0/16").getrevrepr())
 	print(IPv4Network("192.168.123.0/24").getrevrepr())
 	print(IPv4Network("192.168.99.128/25").getrevrepr())
-
